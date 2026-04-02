@@ -1,5 +1,5 @@
 -- Insert User
-INSERT INTO Users (usernamd, email, password_hash)
+INSERT INTO Users (username, email, password_hash)
 VALUES ('testuser', 'test@example.com', 'hashedpassword')
 
 DECLARE @UserId INT = SCOPE_IDENTITY(); -- gives an auto id for User
