@@ -1,29 +1,31 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import { getPool } from "../db";
 
 export async function docs(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     const username = request.query.get("username") || "";
 
-    const sql = require('mssql');
-    const config = {
-        user: 'sa',
-        password: 'YourPassword123!',
-        server: 'localhost',
-        port: 1433,
-        database: 'master',
-        options: {
-            encrypt: false,
-            trustServerCertificate: true
-        }
-    };
+    // const sql = require('mssql');
+    // const config = {
+    //     user: 'sa',
+    //     password: 'YourPassword123!',
+    //     server: 'localhost',
+    //     port: 1433,
+    //     database: 'master',
+    //     options: {
+    //         encrypt: false,
+    //         trustServerCertificate: true
+    //     }
+    // };
 
     try {
-        const pool = await sql.connect(config);
+        const sql = require('mssql');
+        const pool = await getPool();
+        context.log('SQL connected successfully');
+        
         const result = await pool.request()
             .input('username', sql.VarChar(50), username)
             .query("select a.user_id, assignment_id, a.title, a.description, a.created_at from assignments a, users b where a.user_id = b.user_id and b.username = @username");
         const rows = result.recordset;
-
-        context.log('SQL connected successfully');
 
         return {
             status: 200,
