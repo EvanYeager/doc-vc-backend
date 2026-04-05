@@ -9,15 +9,21 @@ export async function doc(request: HttpRequest, context: InvocationContext): Pro
         const pool = await getPool();
         context.log('SQL connected successfully');
 
-        const result = await pool.request()
+        let result = await pool.request()
             .input('id', sql.Int, request.params.id)
             .query("select a.user_id, assignment_id, a.title, a.description, a.created_at from assignments a where a.assignment_id = @id");
-        const row = result.recordset[0];
+        const assignment = result.recordset[0];
+
+        result = await pool.request()
+            .input('id', sql.Int, request.params.id)
+            .query("select * from versions where assignment_id = @id");
+        const versions = result.recordset;
 
         return {
             status: 200,
             body: JSON.stringify({
-                result: row
+                document: assignment,
+                versions: versions
             }),
             headers: { 'Content-Type': 'application/json' }
         }
