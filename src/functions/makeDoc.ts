@@ -9,7 +9,11 @@ export async function makeDoc(request: HttpRequest, context: InvocationContext):
         const pool = await getPool();
         context.log('SQL connected successfully');
 
-        const { user_id, title, description } = await request.json();
+        const { user_id, title, description } = await request.json() as {
+            user_id: number;
+            title: string;
+            description: string;
+        };
 
         const result = await pool.request()
             .input('user_id', sql.Int, user_id)
