@@ -1,7 +1,7 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 import { getPool } from "../db";
 
-export async function doc(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function version(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
     try {
@@ -11,7 +11,8 @@ export async function doc(request: HttpRequest, context: InvocationContext): Pro
 
         const result = await pool.request()
             .input('id', sql.Int, request.params.id)
-            .query("select a.user_id, assignment_id, a.title, a.description, a.created_at from assignments a where a.assignment_id = @id");
+            .input('version', sql.Int, request.params.version)
+            .query("select * from versions where assignment_id = @id and version_number = @version");
         const row = result.recordset[0];
 
         return {
@@ -31,9 +32,9 @@ export async function doc(request: HttpRequest, context: InvocationContext): Pro
     }
 };
 
-app.http('doc', {
-    route: 'meta/doc/{id}',
+app.http('version', {
+    route: 'meta/doc/{id}/{version}',
     methods: ['GET'],
     authLevel: 'anonymous',
-    handler: doc
+    handler: version
 });
