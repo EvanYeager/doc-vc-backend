@@ -6,6 +6,9 @@ import { Readable } from "stream";
 export async function getFile(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
+    const id = request.params.id;
+    const version = request.params.version;
+
     try {
         // TODO replace connection string with DefaultAzureCredential in production
         const connectionString = 'connectionstringhere';
@@ -22,14 +25,16 @@ export async function getFile(request: HttpRequest, context: InvocationContext):
         const nodeStream = downloadResponse.readableStreamBody as Readable;
         const buffer = await streamToBuffer(nodeStream);
 
-        return new Response(new Uint8Array(buffer), {
+        return {
+            body: new Uint8Array(buffer),
             headers: {
                 "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 // remove the following comment to make the browser download this as a file
-                //"Content-Disposition": 'attachment; filename=blobClient.name',
-                "Content-Length": downloadResponse.contentLength.toString()
+                //"Content-Disposition": `attachment; filename="${blobClient.name}"`,
+                "Content-Length": downloadResponse.contentLength?.toString() ?? "0"
             },
-        });
+        status: 200
+        } satisfies HttpResponseInit;
     } catch (err) {
         context.error(`Error occurred while downloading file: ${err}`);
         return {
