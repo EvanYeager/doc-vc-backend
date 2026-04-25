@@ -14,10 +14,12 @@
     "@azure/functions": "^4.0.0",
     "@azure/identity": "^4.13.1",
     "@azure/storage-blob": "^12.31.0",
+    "jsonwebtoken": "^9.0.3",
     "mssql": "^12.2.1"
   },
   "devDependencies": {
-    "@types/node": "^20.x",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.19.39",
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0"
   },
