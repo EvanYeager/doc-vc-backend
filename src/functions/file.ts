@@ -16,9 +16,8 @@ export async function getFile(
 ): Promise<HttpResponseInit> {
   context.log(`Http function processed request for url "${request.url}"`);
 
-  const id = request.params.id;
-  const version = request.params.version;
-
+  const path: string = request.params.path;
+  
   try {
     // TODO replace connection string with DefaultAzureCredential in production
     const connectionString = "connectionstringhere";
@@ -33,7 +32,7 @@ export async function getFile(
 
     const blobClient = blobServiceClient
       .getContainerClient("documents")
-      .getBlobClient("document1.docx");
+      .getBlobClient(path);
     const downloadResponse = await blobClient.download();
     const nodeStream = downloadResponse.readableStreamBody as Readable;
     const buffer = await streamToBuffer(nodeStream);
@@ -123,14 +122,14 @@ export async function uploadFile(
 }
 
 app.http("getFile", {
-  route: "file/doc/{id}/{version}",
+  route: "file/doc/{path}",
   methods: ["GET"],
   authLevel: "anonymous",
   handler: getFile,
 });
 
 app.http("uploadFile", {
-  route: "file/doc/{id}",
+  route: "file/doc",
   methods: ["POST"],
   authLevel: "anonymous",
   handler: uploadFile,
