@@ -20,7 +20,8 @@ export async function getFile(
   
   try {
     // TODO replace connection string with DefaultAzureCredential in production
-    const connectionString = "connectionstringhere";
+    const connectionString =
+      process.env.AzureWebJobsStorage || "connectionstringhere";
 
     const accountName = "docversionstore";
     // const blobServiceClient = new BlobServiceClient(
