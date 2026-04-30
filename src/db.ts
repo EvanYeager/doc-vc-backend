@@ -2,16 +2,16 @@ import { sql } from "mssql";
 
 let pool: sql.sqlConnectionPool | null = null;
 
-const sql = require("mssql");
 const config = {
-  user: process.env.SQL_USER,
-  password: process.env.SQL_PASSWORD,
-  server: process.env.SQL_SERVER,
-  database: process.env.SQL_DATABASE,
+  server: process.env.DB_SERVER,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
   options: {
-    encrypt: true,
-    trustServerCertificate: false,
+    encrypt: process.env.NODE_ENV === 'production',
+    trustServerCertificate: process.env.NODE_ENV !== 'production',
   },
+  port: parseInt(process.env.DB_PORT) || 1433
 };
 
 export async function getPool(): Promise<sql.ConnectionPool> {
