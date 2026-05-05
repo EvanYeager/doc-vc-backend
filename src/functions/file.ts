@@ -76,22 +76,23 @@ export async function uploadFile(
     context.log("container client created");
     await containerClient.createIfNotExists();
 
-    const assignmentId = request.params.id;
-    context.log(`assignmentId: ${assignmentId}`);
-    const fileName =
-      request.headers.get("x-file-name") ||
-      `assignment-${assignmentId}-${Date.now()}.docx`;
-    context.log(`fileName: ${fileName}`);
+    
 
-    const body = await request.arrayBuffer();
+    const contentType = request.headers.get("content-type") || "";
+    const buffer = Buffer.from(await request.arrayBuffer());
     context.log("2 body read");
 
-    const buffer = Buffer.from(body);
+    const fileNameFromBody = getFileNameFromMultipart(buffer, contentType);
+    const baseName = fileNameFromBody ? fileNameFromBody.replace(/\.[^/.]+$/, "") : "unknown";
+    const extension = fileNameFromBody && fileNameFromBody.endsWith('.txt') ? '.txt' : '.docx';
+    const fileName =
+      request.headers.get("x-file-name") ||
+      `${baseName}-${Date.now()}${extension}`;
+
     context.log(`3 buffer made: ${buffer.length} bytes`);
 
-    const blobName = `${assignmentId}/${Date.now()}-${fileName}`;
-    context.log(`4 blob name: ${blobName}`);
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    context.log(`4 blob name: ${fileName}`);
+    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
     context.log("5 blob client made");
 
     await blockBlobClient.uploadData(buffer, {
@@ -107,7 +108,7 @@ export async function uploadFile(
       status: 201,
       body: JSON.stringify({
         message: "File uploaded successfully",
-        file_path: blobName,
+        file_path: fileName,
         url: blockBlobClient.url,
       }),
       headers: { "Content-Type": "application/json" },
@@ -142,4 +143,30 @@ async function streamToBuffer(stream: Readable): Promise<Buffer> {
     chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
   return Buffer.concat(chunks);
+}
+
+function getFileNameFromMultipart(body: Buffer, contentType: string): string | undefined {
+  const boundaryMatch = /boundary=(?:"([^"]+)"|([^;\s]+))/i.exec(contentType);
+  if (!boundaryMatch) {
+    return undefined;
+  }
+
+  const boundary = boundaryMatch[1] || boundaryMatch[2];
+  const bodyText = body.toString("latin1");
+  const parts = bodyText.split(`--${boundary}`);
+
+  for (const part of parts) {
+    const headerEndIndex = part.indexOf("\r\n\r\n");
+    if (headerEndIndex === -1) {
+      continue;
+    }
+
+    const headersText = part.slice(0, headerEndIndex);
+    const dispositionMatch = /Content-Disposition: form-data;[^\r\n]*filename="([^"]+)"/i.exec(headersText);
+    if (dispositionMatch) {
+      return dispositionMatch[1];
+    }
+  }
+
+  return undefined;
 }
