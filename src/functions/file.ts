@@ -124,7 +124,7 @@ export async function uploadFile(
 }
 
 app.http("getFile", {
-  route: "file/doc/{path}",
+  route: "file/doc/{*path}",
   methods: ["GET"],
   authLevel: "anonymous",
   handler: getFile,
