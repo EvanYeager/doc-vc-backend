@@ -1,6 +1,9 @@
-import { sql } from "mssql";
+// import { sql } from "mssql";
+// let pool: sql.sqlConnectionPool | null = null;
 
-let pool: sql.sqlConnectionPool | null = null;
+import * as sql from "mssql";
+
+let pool: sql.ConnectionPool | null = null;
 
 // const config = {
 //   server: process.env.DB_SERVER,
