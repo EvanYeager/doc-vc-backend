@@ -86,7 +86,7 @@ export async function uploadFile(
     const baseName = fileNameFromBody ? fileNameFromBody.replace(/\.[^/.]+$/, "") : "unknown";
     const extension = fileNameFromBody && fileNameFromBody.endsWith('.txt') ? '.txt' : '.docx';
     const fileName =
-      request.headers.get("x-file-name") ||
+      request.headers.get("x-file-name") ? `${request.headers.get("x-file-name")}-${Date.now()}${extension}` :
       `${baseName}-${Date.now()}${extension}`;
 
     context.log(`3 buffer made: ${buffer.length} bytes`);
